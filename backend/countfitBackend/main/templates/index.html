@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Cam</title>
+    <style>
+        #count-container {
+            margin-top: 20px;
+            font-size: 48px;
+            font-weight: bold;
+            color: #FF0000; /* 빨간색 글자 */
+        }
+        #finish-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 24px;
+            font-weight: bold;
+            background-color: #FF6347;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        #finish-button:hover {
+            background-color: #FF4500;
+        }
+    </style>
+</head>
+<body>
+    <h1>Web Cam</h1>
+
+    <video id="video" autoplay></video>
+    <div id="count-container">Count: <span id="count">0</span></div>
+    <button id="finish-button">운동 종료</button> <!-- 운동 종료 버튼 추가 -->
+
+    <script type="text/javascript">
+        const url = `ws://${window.location.host}/ws/socket-server/`;
+        const chatSocket = new WebSocket(url);
+
+        const selectedExercise = 'squat'; // 실제 운동 유형에 맞게 수정 (예: 'push_up', 'squat', 'pull_up')
+
+        chatSocket.onopen = () => {
+            console.log("Connected to the server");
+
+            // WebSocket 연결 이후 선택한 운동 유형을 서버로 전송
+            chatSocket.send(JSON.stringify({
+                type: 'set_exercise_type',
+                exercise: selectedExercise
+            }));
+        };
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                const videoElement = document.getElementById('video');
+                videoElement.srcObject = stream;
+
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+
+                // 프레임을 캡처하고 전송하는 함수
+                const sendFrame = () => {
+                    canvas.width = videoElement.videoWidth;
+                    canvas.height = videoElement.videoHeight;
+                    context.drawImage(videoElement, 0, 0);
+
+                    const frameData = canvas.toDataURL('image/webp', 0.5);
+                    const base64Data = frameData.split(',')[1];
+
+                    chatSocket.send(JSON.stringify({
+                        'type': 'video_frame',
+                        'data': base64Data
+                    }));
+                };
+
+                // 1초마다 sendFrame 호출
+                const frameInterval = setInterval(sendFrame, 1000);
+
+                // WebSocket 연결 종료 시 인터벌도 정리
+                chatSocket.onclose = () => {
+                    clearInterval(frameInterval);
+                    console.log("WebSocket connection closed.");
+                };
+            })
+            .catch(err => console.error("Error accessing webcam:", err));
+
+        // WebSocket 메시지 수신 처리
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+
+            if (data.type === 'count_update') {
+                // count_update 메시지 수신 시 카운트 업데이트
+                const countElement = document.getElementById('count');
+                countElement.textContent = data.count;
+            }
+
+            if (data.type === 'final_count') {
+                // final_count 메시지 수신 시 WebSocket 연결 종료
+                console.log("Final count:", data.final_count);
+                chatSocket.close();
+            }
+        };
+
+        // 운동 종료 버튼 클릭 시 서버에 finish_exercise 메시지 전송
+        document.getElementById('finish-button').onclick = () => {
+            chatSocket.send(JSON.stringify({
+                type: 'finish_exercise'
+            }));
+            console.log("Sent finish_exercise message to server");
+        };
+    </script>
+</body>
+</html>
