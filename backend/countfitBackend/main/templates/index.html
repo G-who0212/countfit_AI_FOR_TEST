@@ -35,7 +35,8 @@
     <button id="finish-button">운동 종료</button> <!-- 운동 종료 버튼 추가 -->
 
     <script type="text/javascript">
-        const url = `ws://${window.location.host}/ws/socket-server/`;
+        // const url = `ws://${window.location.host}/ws/socket-server/`; // 13.125.106.111
+        const url = `ws://13.125.98.207:8000/ws/socket-server/`;
         const chatSocket = new WebSocket(url);
 
         const selectedExercise = 'squat'; // 실제 운동 유형에 맞게 수정 (예: 'push_up', 'squat', 'pull_up')
