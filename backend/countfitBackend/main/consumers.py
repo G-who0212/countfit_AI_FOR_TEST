@@ -21,8 +21,8 @@ CTX = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train keypoints network')
-    parser.add_argument('--cfg', type=str, default='/Users/gwho/Desktop/CountFit/AI/demo/inference-config.yaml')
-    # parser.add_argument('--cfg', type=str, default='/countfit/AI/demo/inference-config.yaml')
+    # parser.add_argument('--cfg', type=str, default='/Users/gwho/Desktop/CountFit/AI/demo/inference-config.yaml')
+    parser.add_argument('--cfg', type=str, default='/countfit/AI/demo/inference-config.yaml')
     parser.add_argument('opts', help='Modify config options using the command-line', default=None, nargs=argparse.REMAINDER)
     args = parser.parse_args()
     args.modelDir = ''
@@ -57,8 +57,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         self.pose_model = get_pose_net(cfg, is_train=False)
 
-        aws_key = ""
-        aws_secret = ""
+        aws_key = os.getenv('AWS_ACCESS_KEY_ID')
+        aws_secret = os.getenv('AWS_SECRET_ACCESS_KEY')
 
         s3 = boto3.client('s3', aws_access_key_id=aws_key, aws_secret_access_key=aws_secret)
         bucket_name = 'pose-hrnet-path'
