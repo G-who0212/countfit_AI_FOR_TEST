@@ -35,7 +35,7 @@ pipeline {
                         string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
                     ]) {
                         sh '''
-ssh -o StrictHostKeyChecking=no ubuntu@52.78.27.46 <<EOF
+ssh -o StrictHostKeyChecking=no ubuntu@43.200.245.185 <<EOF
 export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
 export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 
